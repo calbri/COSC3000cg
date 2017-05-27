@@ -201,6 +201,8 @@ def DrawBus():
     glPopMatrix()
 
 def DrawGround():
+
+    glEnable(GL_TEXTURE_2D)
     glPushMatrix()
 
     glBindTexture(GL_TEXTURE_2D, groundTextureID)
@@ -220,6 +222,8 @@ def DrawGround():
 
 def DrawSkyBox():
     scaling = 70.0
+
+    glEnable(GL_TEXTURE_2D)
     
     glPushMatrix()
     glDisable(GL_DEPTH_TEST)
@@ -233,8 +237,10 @@ def DrawSkyBox():
     glVertex(scaling, -scaling, -scaling)
     glTexCoord2f(1, 1)
     glVertex(scaling, scaling, -scaling)
-    glTexCoord2f(0, 1)
-    glVertex(-scaling, scaling, -scaling)
+    glTexCoord2f(0, 1)
+
+    glVertex(-scaling, scaling, -scaling)
+
     glEnd()
 
     glBindTexture(GL_TEXTURE_2D, skyLeftID)
@@ -245,8 +251,10 @@ def DrawSkyBox():
     glVertex3f(-scaling, -scaling, -scaling)
     glTexCoord2f(1, 1)
     glVertex3f(-scaling, scaling, -scaling)
-    glTexCoord2f(0, 1)
-    glVertex3f(-scaling, scaling, scaling)
+    glTexCoord2f(0, 1)
+
+    glVertex3f(-scaling, scaling, scaling)
+
     glEnd()
 
     glBindTexture(GL_TEXTURE_2D, skyRightID)
@@ -257,8 +265,10 @@ def DrawSkyBox():
     glVertex3f(scaling, -scaling, scaling)
     glTexCoord2f(1, 1)
     glVertex3f(scaling, scaling, scaling)
-    glTexCoord2f(0, 1)
-    glVertex3f(scaling, scaling, -scaling)
+    glTexCoord2f(0, 1)
+
+    glVertex3f(scaling, scaling, -scaling)
+
     glEnd()
 
     glBindTexture(GL_TEXTURE_2D, skyBackID)
@@ -269,8 +279,10 @@ def DrawSkyBox():
     glVertex(scaling, -scaling, scaling)
     glTexCoord2f(1, 1)
     glVertex(scaling, scaling, scaling)
-    glTexCoord2f(0, 1)
-    glVertex(-scaling, scaling, scaling)
+    glTexCoord2f(0, 1)
+
+    glVertex(-scaling, scaling, scaling)
+
     glEnd()
 
     glBindTexture(GL_TEXTURE_2D, skyTopID)
@@ -281,15 +293,20 @@ def DrawSkyBox():
     glVertex3f(scaling, scaling, -scaling)
     glTexCoord2f(0, 1)
     glVertex3f(scaling, scaling, scaling)
-    glTexCoord2f(1, 1)
-    glVertex3f(-scaling, scaling, scaling)
+    glTexCoord2f(1, 1)
+
+    glVertex3f(-scaling, scaling, scaling)
+
     glEnd()
     
     glBindTexture(GL_TEXTURE_2D, 0)
-    glEnable(GL_DEPTH_TEST)
+    glEnable(GL_DEPTH_TEST)
+
     glPopMatrix()
     
 def DrawGLScene():
+    global numCars, busEnabled
+    
     #Clear screen and depth buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -300,7 +317,7 @@ def DrawGLScene():
     y = CamRange * sin(CamPhi)
     z = r_xz * cos(CamTheta)
 
-    gluLookAt(x,y,z,
+    gluLookAt(25,10,-60,
               0,0,0,
               0,1,0, 
     )
@@ -309,25 +326,39 @@ def DrawGLScene():
 
     DrawSkyBox()
 
-    #draw a bunch of buses side by side
-    carBus = 0
-    
-    for counterx in range(-3,3):
-        glPushMatrix()
-        glTranslatef(0, 0, counterx*8.0)
-        for countery in range(-3,3):
-            glPushMatrix()
-            glTranslatef(countery*8.0, 0, 0)
-            if carBus == 0:
-                DrawCar()
-                carBus = 1
-            else:
-                DrawBus()
-                carBus = 0
-            glPopMatrix()
-        glPopMatrix()
+    counter = 0
+    counterx = 0
+    counterz = -3
 
     DrawGround()
+
+    glColor3f(0,0,0)
+    glRasterPos3f(37, 20, 0)
+    text = "Number of passengers: " + str(numCars)
+    for c in text:
+        glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ctypes.c_int( ord(c) ))
+
+    if busEnabled:
+        carCounter = numCars / 20
+    else:
+        carCounter = numCars
+
+    glPushMatrix()
+    while (counter < carCounter):
+        glPushMatrix()
+        glTranslatef(0, 0, counterz*8.0)
+        glTranslatef((counterx-3)*8.0, 0, 0)
+        counter += 1
+        if busEnabled:
+            DrawBus()
+        else:
+            DrawCar()
+        glPopMatrix()
+        counterx += 1
+        if counterx > 6:
+            counterx = 0
+            counterz += 1
+    glPopMatrix()
 
     glutSwapBuffers()
 
@@ -501,7 +532,8 @@ def LoadSkybox():
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
     glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, skyTop.sizeX, skyTop.sizeY, 0, GL_RGBA, GL_UNSIGNED_BYTE, skyTop.data)
-    
+    
+
         
 
 def InitTexturing():
@@ -605,7 +637,9 @@ def InitTexturing():
         
 
 def InitLighting():
-    glColor3f(1.0, 1.0, 1.0);
+    glColor3f(1.0, 1.0, 1.0)
+    glLightfv(GL_LIGHT0, GL_POSITION, 2.5,1.0,-6.0);
+    
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
     glEnable(GL_COLOR_MATERIAL)
@@ -614,7 +648,7 @@ def InitLighting():
 def InitGL(nWidth, nHeight):
     LoadTextures()
     InitTexturing()
-    InitLighting()
+    #InitLighting()
     
     glClearColor(0.0, 0.0, 0.0, 0.0)
     glClearDepth(1.0)
@@ -626,8 +660,27 @@ def InitGL(nWidth, nHeight):
     ResizeGLScene(nWidth, nHeight)
     return
 
+def KeyPressed( key, x, y ):
+    global numCars, busEnabled
+    
+    key = ord(key)
+    
+    if key == 27 or key == ord( 'Q' ) or key == ord( 'q' ): #quit
+        glutDestroyWindow( hWindow )
+        sys.exit( )
+    elif key == ord( 'W' ) or key == ord( 'w' ):
+        numCars += 1
+    elif key == ord( 'S' ) or key == ord( 's' ):
+        numCars -= 1
+        if numCars < 0:
+            numCars = 0
+    elif key == ord( 'A' ) or key == ord( 'a' ):
+        busEnabled = not(busEnabled)
+    else:
+        return
+
 def main():
-    global hWindow
+    global hWindow, numCars, busEnabled
 
     nWidth = 1280
     nHeight = 720
@@ -635,11 +688,12 @@ def main():
     #Init GLUT
     glutInit("")
     glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_ALPHA | GLUT_DEPTH)
+    
     glutInitWindowSize(nWidth, nHeight)
     glutInitWindowPosition(0, 0)
 
     #Create window
-    hWindow = glutCreateWindow(b"Al Gore Simulator")
+    hWindow = glutCreateWindow(b"Bus Passenger Simulator")
 
     global mouseInteractor
     mouseInteractor = MouseInteractor( .01, 1 )
@@ -649,13 +703,17 @@ def main():
     global car
     car = OBJ("car.obj")
 
+    #init variables for actual demonstration
+    numCars = 1
+    busEnabled = False
+
     #Display callbacks
     glutIdleFunc(DrawGLScene)
     glutDisplayFunc(DrawGLScene)
     glutReshapeFunc(ResizeGLScene)
 
     #Keyboard input callback
-    glutKeyboardFunc(ResizeGLScene)
+    glutKeyboardFunc(KeyPressed)
 
     #Init function
     InitGL(nWidth, nHeight)
@@ -664,6 +722,8 @@ def main():
     glutMainLoop()
 
 #Start program
-print("COSC3000 Assignment - Callum Bryson - Car Traction Simulation")
-print("Hit ESC to quit")
+print("COSC3000 Assignment - Callum Bryson - Bus Capacity Simulator")
+print("Hit Q or ESC to quit")
+print("W/S = Increase/Decrease number of passengers")
+print("A = Toggle bus/car view")
 main( )

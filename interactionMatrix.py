@@ -26,6 +26,9 @@ class InteractionMatrix ( object ):
 		self.__currentMatrix = None
 		self.reset( )
 
+	def getCurrentMatrix( self ):
+		return self.__currentMatrix
+
 	def reset( self ):
 		"""Initialise internal matrix with identity"""
 		glPushMatrix( )
@@ -42,6 +45,7 @@ class InteractionMatrix ( object ):
 		self.__currentMatrix = glGetFloatv( GL_MODELVIEW_MATRIX )
 		glPopMatrix( )
 
+
 	def addRotation( self, ang, rx, ry, rz ):
 		"""Concatenate the internal matrix with a translation matrix"""
 		glPushMatrix( )
@@ -51,8 +55,7 @@ class InteractionMatrix ( object ):
 		self.__currentMatrix = glGetFloatv( GL_MODELVIEW_MATRIX )
 		glPopMatrix( )
 
-	def getCurrentMatrix( self ):
-		return self.__currentMatrix
+		
 	
 if __name__ == '__main__' :
 	glutInit( sys.argv )
