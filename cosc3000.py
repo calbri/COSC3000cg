@@ -339,7 +339,7 @@ def DrawGLScene():
         glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, ctypes.c_int( ord(c) ))
 
     if busEnabled:
-        carCounter = numCars / 20
+        carCounter = math.ceil(numCars / 20)
     else:
         carCounter = numCars
 
@@ -638,7 +638,8 @@ def InitTexturing():
 
 def InitLighting():
     glColor3f(1.0, 1.0, 1.0)
-    glLightfv(GL_LIGHT0, GL_POSITION, 2.5,1.0,-6.0);
+    glLightfv(GL_LIGHT0, GL_POSITION, -0.5, -1.0, -1.0);
+    glLightfv( GL_LIGHT0, GL_AMBIENT, (0.8, 0.8, 0.8, 1) )
     
     glEnable(GL_LIGHTING)
     glEnable(GL_LIGHT0)
@@ -648,7 +649,7 @@ def InitLighting():
 def InitGL(nWidth, nHeight):
     LoadTextures()
     InitTexturing()
-    #InitLighting()
+    InitLighting()
     
     glClearColor(0.0, 0.0, 0.0, 0.0)
     glClearDepth(1.0)
